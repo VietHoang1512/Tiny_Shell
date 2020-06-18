@@ -9,7 +9,7 @@ BOOL ProcessCommand(char **argv)
 {
 	if (argv[1] == NULL) // Lenh ps co it nhat 2 doi so
 	{
-		cout << "Too few arguments\n";
+		cout << "At least 1 argument required\n";
 		return EXIT_FAILURE;
 	}
 	if (strcmp(argv[1], "-all") == 0)
@@ -22,11 +22,52 @@ BOOL ProcessCommand(char **argv)
 		else
 			return EXIT_FAILURE;
 	}
+		if (strcmp(argv[1], "-thread") == 0)
+	{
+		if (argv[2] == NULL)
+		{
+			cout << "At least 1 argument required\n";
+			return EXIT_FAILURE;
+		}
+		// Get List Thread of Process
+		DWORD pid = atoi(argv[2]);
+		if (GetThreadList(pid))
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
+	}
+	if (strcmp(argv[1], "-find") == 0)
+	{
+		if (argv[2] == NULL)
+		{
+			cout << "At least 1 argument required\n";
+			return EXIT_FAILURE;
+		}
+		// Find a PID of Process
+		if (FindProcessID(argv[2]))
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
+	}
+	if (strcmp(argv[1], "-child") == 0)
+	{
+		if (argv[2] == NULL)
+		{
+			cout << "At least 1 argument required\n";
+			return EXIT_FAILURE;
+		}
+		// Print All Child Process
+		DWORD pid = atoi(argv[2]);
+		if (GetChildProcessList(pid))
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
+	}
 	if (strcmp(argv[1], "-suspend") == 0)
 	{
 		if (argv[2] == NULL)
 		{
-			cout << "Too few arguments\n";
+			cout << "At least 1 argument required\n";
 			return EXIT_FAILURE;
 		}
 		// Suspend Process
@@ -40,7 +81,7 @@ BOOL ProcessCommand(char **argv)
 	{
 		if (argv[2] == NULL)
 		{
-			cout << "Too few arguments\n";
+			cout << "At least 1 argument required\n";
 			return EXIT_FAILURE;
 		}
 		// Resume Process
@@ -55,7 +96,7 @@ BOOL ProcessCommand(char **argv)
 	{
 		if (argv[2] == NULL)
 		{
-			cout << "Too few arguments\n";
+			cout << "At least 1 argument required\n";
 			return EXIT_FAILURE;
 		}
 		// Find a PID of Process
@@ -68,7 +109,7 @@ BOOL ProcessCommand(char **argv)
 	{
 		if (argv[2] == NULL)
 		{
-			cout << "Too few arguments\n";
+			cout << "At least 1 argument required\n";
 			return EXIT_FAILURE;
 		}
 		// Suspend Process

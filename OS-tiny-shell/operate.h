@@ -11,4 +11,5 @@ using namespace std;
 BOOL BuiltInCommand(char **argv, LPSTR cur_dir);
 
 BOOL ProcessCommand(char **argv);
-#endifs
+
+#endif

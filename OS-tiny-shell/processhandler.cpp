@@ -47,6 +47,41 @@ BOOL GetProcessListAll()
 	CloseHandle(h_process_snap);
 	return (TRUE);
 }
+BOOL GetChildProcessList(DWORD pid)
+{
+	HANDLE h_process_snap;
+	PROCESSENTRY32 pe32;
+
+	// Take a snapshot of all processes in the system.
+	h_process_snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (h_process_snap == INVALID_HANDLE_VALUE)
+	{
+		printf("CreateToolhelp32Snapshot Fail %d\n", GetLastError());
+		return FALSE;
+	}
+
+	// Set the size of the structure before using it.
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	// Retrieve information about the first process,
+	// and exit if unsuccessful
+	if (!Process32First(h_process_snap, &pe32))
+	{
+		printf("Process32First Fail %d\n", GetLastError()); // show cause of failure
+		CloseHandle(h_process_snap);          // clean the snapshot object
+		return FALSE;
+	}
+	// Retrieve the priority class.
+	printf("%-50s%-20s%-20s\n", "Process Name", "Process ID", "Parent Process ID");
+	printf("%-50s%-20s%-20s\n", "----------------------------------", "----------", "-----------");
+	do
+	{
+		if (pe32.th32ParentProcessID == pid)
+			printf("%-50s%-20d%-20d\n", pe32.szExeFile, pe32.th32ProcessID, pe32.th32ParentProcessID);
+	} while (Process32Next(h_process_snap, &pe32));
+	CloseHandle(h_process_snap);
+	return(TRUE);
+}
 
 BOOL SuspendProcess(DWORD pid)
 {
@@ -202,6 +237,71 @@ BOOL CreateNewProcess(char **argv)
 	// Close process and thread handles.
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
+
+	return EXIT_SUCCESS;
+}
+BOOL GetThreadList(DWORD pid)
+{
+	// Take a snapshot of all threads in the process.
+	HANDLE h_thread_snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+	THREADENTRY32 th32;
+	if (h_thread_snap == INVALID_HANDLE_VALUE)
+	{
+		printf("CreateToolhelp32Snapshot Fail %d\n", GetLastError());
+		return FALSE;
+	}
+	// Set the size of the structure before using it.
+	th32.dwSize = sizeof(THREADENTRY32);
+	// Retrieve information about the first thread,
+	if (!Thread32First(h_thread_snap, &th32))
+	{
+		printf("Thread32First Fail %d\n", GetLastError()); // show cause of failure
+		CloseHandle(h_thread_snap);          // clean the snapshot object
+		return FALSE;
+	}
+	// Walk other threads
+	printf("%-50s%-20s\n", "Thread ID", "OwnerProcessID");
+	printf("%-50s%-20s\n", "----------------------------------", "----------");
+	do
+	{
+		if (th32.th32OwnerProcessID == pid)
+			printf("%-50d%-20d\n", th32.th32ThreadID, th32.th32OwnerProcessID);
+	} while (Thread32Next(h_thread_snap, &th32));
+	CloseHandle(h_thread_snap);
+	return TRUE;
+}
+BOOL FindProcessID(const char *process_name)
+{
+	HANDLE hProcessSnap;
+	PROCESSENTRY32 pe32;
+
+	// Take a snapshot of all processes in the system.
+	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (INVALID_HANDLE_VALUE == hProcessSnap) return(EXIT_FAILURE);
+
+	pe32.dwSize = sizeof(PROCESSENTRY32); // <----- IMPORTANT
+
+	// Retrieve information about the first process,
+	// and exit if unsuccessful
+	printf("%-50s%-20s%-20s\n", "Process Name", "Process ID", "Parent Process ID");
+	printf("%-50s%-20s%-20s\n", "----------------------------------", "----------", "-----------");
+	if (!Process32First(hProcessSnap, &pe32))
+	{
+		CloseHandle(hProcessSnap);          // clean the snapshot object
+		printf("!!! Failed to gather information on system processes! \n");
+		return EXIT_FAILURE;
+	}
+
+	do
+	{
+		// printf("Checking process %ls\n", pe32.szExeFile);
+		if (0 == strcmp(process_name, pe32.szExeFile))
+		{
+			printf("%-50s%-20d%-20d\n", pe32.szExeFile, pe32.th32ProcessID, pe32.th32ParentProcessID);
+		}
+	} while (Process32Next(hProcessSnap, &pe32));
+
+	CloseHandle(hProcessSnap);
 
 	return EXIT_SUCCESS;
 }

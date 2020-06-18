@@ -51,6 +51,12 @@ BOOL HelpTask(char **argv)
 			 << "Resume a process by its pid.\n";
 		cout << " " << setw(15) << left << "kill"
 			 << "Terminate a process by its pid.\n";
+		cout << " " << setw(15) << left << "child"
+			<< "Show all the childrent process of a process by its pid\n";
+		cout << " " << setw(15) << left << "thread"
+			<< "Show all the threads of a process by its pid\n";
+		cout << " " << setw(15) << left << "find"
+			<< "Find a process by its pid\n";
 		cout << "Systex parameter: " << endl;
 		cout << "                "
 			 << "-[option]" << endl;
@@ -254,7 +260,6 @@ BOOL SetEnvironmentVar(char **argv)
 	char *new_value = CombineLine(argv, 3);
 	// get evironment var
 	char *value = (char *)calloc(10000, sizeof(char));
-	char extension[] = ";";
 	DWORD byte = 10000 * sizeof(char);
 	// if variable doesn't exist, make a new variable. Else then add to existance value
 	if (GetEnvironmentVariableA(argv[2], value, byte) == 0)
@@ -267,8 +272,8 @@ BOOL SetEnvironmentVar(char **argv)
 	}
 	else
 	{
-		value = strcat(value, new_value);
-		value = strcat(value, extension);
+		char *p = (char*) calloc(10000,sizeof(char));
+		value = strcat(p, new_value);
 		if (!SetEnvironmentVariableA(argv[2], value))
 		{
 			cout << "Set environment variable error\n";
