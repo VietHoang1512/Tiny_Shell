@@ -3,7 +3,21 @@
 #include "built_in_cmd.h"
 #include "processhandler.h"
 
-const char *spe_arg[] = {"help", "cd", "exit", "enva", "date", "time", "dir", "ps"};
+const char *spe_non_arg[] = {"exit"};
+const char *spe_one_arg[] = {"help", "date", "time", "enva", "ps"};
+const char *spe_two_arg[] = {"cd", "dir"};
+BOOL (*builtin_one_param)[](**args) = {
+	&HelpTask;
+	&DateTask;
+	&TimeTask;
+	&AnalysisEnvironmentVar;
+	&ProcessCommand;
+};
+
+BOOL (*builtin_two_param)[](**args, LPSTR cur_dir) = {
+	&CDTask;
+	&DirTask;
+};
 
 BOOL ProcessCommand(char **argv)
 {
@@ -22,7 +36,7 @@ BOOL ProcessCommand(char **argv)
 		else
 			return EXIT_FAILURE;
 	}
-		if (strcmp(argv[1], "-thread") == 0)
+	if (strcmp(argv[1], "-thread") == 0)
 	{
 		if (argv[2] == NULL)
 		{
@@ -123,44 +137,28 @@ BOOL ProcessCommand(char **argv)
 	return EXIT_FAILURE;
 }
 
-BOOL BuiltInCommand(char **argv, LPSTR cur_dir)
-{
-	if (strcmp(argv[0], spe_arg[0]) == 0) // Neu doi so truyen vao = "help" => Thuc hien lenh Help
-	{
-		HelpTask(argv);
-	}
-	else if (strcmp(argv[0], spe_arg[1]) == 0) // Neu doi so truyen vao = "help" => Thuc hien lenh cd, voi thu muc hien tai: cur_dir
-	{
-		CDTask(argv, cur_dir);
-	}
-	else if (strcmp(argv[0], spe_arg[2]) == 0) // Neu doi so truyen vao = "exit" => Ket thuc shell
-	{
+BOOL BuiltInCommand(char **argv, LPSTR cur_dir){
+	int i;
+	bool done = false ;
+	if (strcmp(argv[0], spe_non_arg[0])==0){
+		done = true;
 		exit(0);
 	}
-	else if (strcmp(argv[0], spe_arg[3]) == 0) // Neu doi so truyen vao = "enva"...
-	{
-		AnalysisEnvironmentVar(argv);
+	for(i=0; i<5;++i){
+		if(strcmp(argv[0],spe_one_arg[i])==0){
+			done =  true;
+			(*builtin_one_param[i])(argv);
+		}
 	}
-	else if (strcmp(argv[0], spe_arg[4]) == 0)
-	{
-		DateTask(argv);
+	for(i=0; i<2;++i){
+		if(strcmp(argv[0],spe_two_arg[i])==0){
+			done =  true;
+			(*builtin_two_param[i])(argv, cur_dir));
+		}
 	}
-	else if (strcmp(argv[0], spe_arg[5]) == 0)
-	{
-		TimeTask(argv);
-	}
-	else if (strcmp(argv[0], spe_arg[6]) == 0)
-	{
-		DirTask(argv, cur_dir);
-	}
-	else if (strcmp(argv[0], spe_arg[7]) == 0)
-	{
-		ProcessCommand(argv);
-	}
-	else
-	{
+	if(!done){
 		cout << "Command not found.\nType 'help' to know more information\n";
 		return 1;
 	}
-	return 0;
+	return 0; 
 }
